@@ -8,11 +8,6 @@
         define(['jquery', 'lodash', 'jquery-ui/core', 'jquery-ui/widget', 'jquery-ui/mouse', 'jquery-ui/draggable',
             'jquery-ui/resizable'], factory);
     }
-    else if (typeof exports !== 'undefined') {
-      try { jQuery = require('jquery'); } catch(e) {}
-      try { _ = require('lodash'); } catch(e) {}
-      factory(jQuery, _);
-    }
     else {
         factory(jQuery, _);
     }
@@ -388,8 +383,6 @@
     var GridStack = function(el, opts) {
         var self = this, one_column_mode;
 
-        opts = opts || {};
-
         this.container = $(el);
 
         opts.item_class = opts.item_class || 'grid-stack-item';
@@ -401,7 +394,6 @@
             item_class: 'grid-stack-item',
             placeholder_class: 'grid-stack-placeholder',
             handle: '.grid-stack-item-content',
-            handle_class: null,
             cell_height: 60,
             vertical_margin: 20,
             auto: true,
@@ -416,7 +408,7 @@
                 handles: 'se'
             }),
             draggable: _.defaults(opts.draggable || {}, {
-                handle: (opts.handle_class ? '.' + opts.handle_class : (opts.handle ? opts.handle : '')) || '.grid-stack-item-content',
+                handle: '.grid-stack-item-content',
                 scroll: false,
                 appendTo: 'body'
             })
@@ -454,7 +446,7 @@
         if (this.opts.auto) {
             var elements = [];
             var _this = this;
-            this.container.children('.' + this.opts.item_class + ':not(.' + this.opts.placeholder_class + ')').each(function(index, el) {
+            this.container.children('.' + this.opts.item_class).each(function(index, el) {
                 el = $(el);
                 elements.push({
                     el: el,
@@ -675,7 +667,8 @@
             start: on_start_moving,
             stop: on_end_moving,
             drag: function(event, ui) {
-                var x = Math.round(ui.position.left / cell_width),
+                //TODO: use ceil instead of round that it jumps to the right by default
+                var x = Math.ceil(ui.position.left / cell_width),
                     y = Math.floor((ui.position.top + cell_height / 2) / cell_height);
                 if (!self.grid.can_move_node(node, x, y, node.width, node.height)) {
                     return;
@@ -688,8 +681,9 @@
             start: on_start_moving,
             stop: on_end_moving,
             resize: function(event, ui) {
-                var x = Math.round(ui.position.left / cell_width),
-                    y = Math.floor((ui.position.top + cell_height / 2) / cell_height),
+               //TODO: Set start position to the current grid position (ignore ui.position)
+                var x = ui.element.attr('data-gs-x'), //Math.ceil(ui.position.left / cell_width),
+                    y = ui.element.attr('data-gs-y'), //Math.floor((ui.position.top + cell_height / 2) / cell_height),
                     width = Math.round(ui.size.width / cell_width),
                     height = Math.round(ui.size.height / cell_height);
                 if (!self.grid.can_move_node(node, x, y, width, height)) {
